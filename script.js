@@ -178,8 +178,10 @@ async function downloadSelectedPages() {
         // Get the ArrayBuffer of the source PDF
         const existingPdfBytes = await currentPdf.getData();
         
-        // Load the source PDF
-        const sourcePdf = await PDFLib.PDFDocument.load(existingPdfBytes);
+        // Load the source PDF with encryption handling
+        const sourcePdf = await PDFLib.PDFDocument.load(existingPdfBytes, {
+            ignoreEncryption: true
+        });
         
         // Copy the selected pages
         for (const pageNum of sortedPages) {
