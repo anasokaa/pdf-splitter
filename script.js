@@ -71,9 +71,13 @@ async function handleFileSelect(event) {
 
     try {
         const arrayBuffer = await file.arrayBuffer();
-        currentPdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        // Store the original file data
+        currentPdf = {
+            instance: await pdfjsLib.getDocument(arrayBuffer).promise,
+            data: arrayBuffer
+        };
         
-        document.getElementById('totalPages').textContent = currentPdf.numPages;
+        document.getElementById('totalPages').textContent = currentPdf.instance.numPages;
         document.getElementById('pageInfo').classList.remove('hidden');
         
         // Clear previous selections
@@ -96,7 +100,7 @@ async function generatePagePreviews() {
     pagesGrid.innerHTML = '';
     pagesGrid.classList.remove('hidden');
 
-    for (let i = 1; i <= currentPdf.numPages; i++) {
+    for (let i = 1; i <= currentPdf.instance.numPages; i++) {
         const pageContainer = document.createElement('div');
         pageContainer.className = 'page-item';
         pageContainer.dataset.pageNumber = i;
@@ -106,7 +110,7 @@ async function generatePagePreviews() {
         pageNumber.textContent = `Page ${i}`;
 
         const canvas = document.createElement('canvas');
-        const page = await currentPdf.getPage(i);
+        const page = await currentPdf.instance.getPage(i);
         const viewport = page.getViewport({ scale: 0.5 });
         
         canvas.width = viewport.width;
@@ -175,8 +179,8 @@ async function downloadSelectedPages() {
         // Create a new PDF document
         const pdfDoc = await PDFLib.PDFDocument.create();
         
-        // Get the ArrayBuffer of the source PDF
-        const existingPdfBytes = await currentPdf.getData();
+        // Get the source PDF data
+        const existingPdfBytes = currentPdf.data;
         
         // Load the source PDF with proper encryption handling
         let sourcePdf;
