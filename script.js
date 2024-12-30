@@ -178,10 +178,19 @@ async function downloadSelectedPages() {
         // Get the ArrayBuffer of the source PDF
         const existingPdfBytes = await currentPdf.getData();
         
-        // Load the source PDF with encryption handling
-        const sourcePdf = await PDFLib.PDFDocument.load(existingPdfBytes, {
-            ignoreEncryption: true
-        });
+        // Load the source PDF with proper encryption handling
+        let sourcePdf;
+        try {
+            sourcePdf = await PDFLib.PDFDocument.load(existingPdfBytes);
+        } catch (error) {
+            if (error.message.includes('encrypted')) {
+                sourcePdf = await PDFLib.PDFDocument.load(existingPdfBytes, {
+                    ignoreEncryption: true
+                });
+            } else {
+                throw error;
+            }
+        }
         
         // Copy the selected pages
         for (const pageNum of sortedPages) {
